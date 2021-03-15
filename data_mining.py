@@ -21,9 +21,12 @@ covid_cases_county_df = covid_county_df.groupby(['fips', 'county', 'state'], as_
 # Create data frame to document death count by county 
 covid_deaths_county_df = covid_county_df.groupby(['fips', 'county', 'state'], as_index=False)['deaths'].max()
 
+# Combine county dfs so there is only one df for county data
+covid_county_df = covid_cases_county_df.copy(['fips', 'county', 'state', 'cases'])
+covid_county_df['deaths'] = covid_deaths_county_df['deaths']
+
 # Convert fips codes to be strings
-covid_cases_county_df['fips'] = covid_cases_county_df['fips'].apply(lambda x: str(int(x)))
-covid_deaths_county_df['fips'] = covid_deaths_county_df['fips'].apply(lambda x: str(int(x)))
+covid_county_df['fips'] = covid_county_df['fips'].apply(lambda x: str(int(x)))
 
 # Add a leading 0 to the fips codes of AK, AZ, AL, AR, CA, and CO
 
@@ -33,18 +36,18 @@ def update_fips(fip):
     else:
         return fip
 
-covid_cases_county_df['fips'] = covid_cases_county_df['fips'].apply(lambda x: update_fips(x))
-covid_deaths_county_df['fips'] = covid_deaths_county_df['fips'].apply(lambda x: update_fips(x))
+covid_county_df['fips'] = covid_county_df['fips'].apply(lambda x: update_fips(x))
 
-
-# Create data frame to document case count by county 
+# Create dataframes to document case count and death by state
 covid_cases_state_df = covid_cases_county_df.groupby('state', as_index=False)['cases'].sum()
-
-# Create data frame to document death count by county 
 covid_deaths_state_df = covid_deaths_county_df.groupby('state', as_index=False)['deaths'].sum()
 
+# Combine state dfs so there is only one df for state data
+covid_state_df = covid_cases_state_df.copy(['state', 'cases'])
+covid_state_df['deaths'] = covid_deaths_state_df['deaths']
+
 # Update deaths in the state df to be integers
-covid_deaths_state_df['deaths'] = covid_deaths_state_df['deaths'].apply(lambda x: int(x))
+covid_state_df['deaths'] = covid_state_df['deaths'].apply(lambda x: int(x))
 
 # Add state abbreviations to both state dfs
 
@@ -54,10 +57,10 @@ states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA",
           "NM", "NY", "NC", "ND", "NI", "OH", "OK", "OR", "PA", "PR", "RI", "SC", 
           "SD", "TN", "TX", "UT", "VT", "VI", "VA", "WA", "WV", "WI", "WY"]
 
-covid_cases_state_df['state_abb'] = states
-covid_deaths_state_df['state_abb'] = states
+covid_state_df['state_abb'] = states
+covid_state_df['state_abb'] = states
 
 # test for checking county data by state
-# sd_cases_df = covid_cases_county_df[covid_cases_county_df['state'] == 'South Dakota']
+# sd_cases_df = covid_county_df[covid_cases_county_df['state'] == 'South Dakota']
 
 # print(sd_cases_df.tail(20))
